@@ -55,10 +55,10 @@
 			<version>${mapstruct.version}</version>
 		</dependency>
 
-		<!-- Jakarta Validation -->
+		<!-- Validation -->
 		<dependency>
-			<groupId>jakarta.validation</groupId>
-			<artifactId>jakarta.validation-api</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
 		<dependency>

@@ -6,4 +6,6 @@ public interface PokemonService {
 
     PokemonInfoLocalDto getPokemonInfo(String name);
 
+    PokemonInfoLocalDto getTranslatedPokemonInfo(String name);
+
 }
