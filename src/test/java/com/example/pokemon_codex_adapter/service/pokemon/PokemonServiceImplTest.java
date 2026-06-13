@@ -19,7 +19,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.example.pokemon_codex_adapter.exception.custom.PokemonApiException;
+import com.example.pokemon_codex_adapter.exception.custom.PokemonNotFoundException;
+import org.springframework.web.client.HttpClientErrorException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -61,6 +66,40 @@ class PokemonServiceImplTest {
 
         assertThat(result).isEqualTo(localDto);
         verify(pokemonInfoMapper).toLocalDto(apiDto);
+    }
+
+    @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void getPokemonInfo_whenApiReturns404_shouldThrowPokemonNotFoundException() {
+        RestClient.RequestHeadersUriSpec uriSpec = mock(RestClient.RequestHeadersUriSpec.class);
+        RestClient.RequestHeadersSpec headersSpec = mock(RestClient.RequestHeadersSpec.class);
+        RestClient.ResponseSpec responseSpec = mock(RestClient.ResponseSpec.class);
+
+        when(pokemonRestClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString(), (Object) any())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(PokemonInfoDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
+
+        assertThatThrownBy(() -> pokemonService.getPokemonInfo("unknownmon"))
+                .isInstanceOf(PokemonNotFoundException.class)
+                .hasMessageContaining("unknownmon");
+    }
+
+    @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void getPokemonInfo_whenApiReturnsGenericError_shouldThrowPokemonApiException() {
+        RestClient.RequestHeadersUriSpec uriSpec = mock(RestClient.RequestHeadersUriSpec.class);
+        RestClient.RequestHeadersSpec headersSpec = mock(RestClient.RequestHeadersSpec.class);
+        RestClient.ResponseSpec responseSpec = mock(RestClient.ResponseSpec.class);
+
+        when(pokemonRestClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString(), (Object) any())).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(PokemonInfoDto.class)).thenThrow(new RestClientException("Server error"));
+
+        assertThatThrownBy(() -> pokemonService.getPokemonInfo("mewtwo"))
+                .isInstanceOf(PokemonApiException.class)
+                .hasMessageContaining("mewtwo");
     }
 
     @Test

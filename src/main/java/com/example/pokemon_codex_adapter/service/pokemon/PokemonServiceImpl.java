@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.example.pokemon_codex_adapter.exception.custom.PokemonApiException;
+import com.example.pokemon_codex_adapter.exception.custom.PokemonNotFoundException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -29,11 +32,17 @@ public class PokemonServiceImpl implements PokemonService {
 
     @Override
     public PokemonInfoLocalDto getPokemonInfo(String name) {
-        PokemonInfoDto pokemonInfoDto = pokemonRestClient.get()
-                .uri(getPokemonInfoPath, name)
-                .retrieve()
-                .body(PokemonInfoDto.class);
-        return pokemonInfoMapper.toLocalDto(pokemonInfoDto);
+        try {
+            PokemonInfoDto pokemonInfoDto = pokemonRestClient.get()
+                    .uri(getPokemonInfoPath, name)
+                    .retrieve()
+                    .body(PokemonInfoDto.class);
+            return pokemonInfoMapper.toLocalDto(pokemonInfoDto);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new PokemonNotFoundException(name);
+        } catch (RestClientException e) {
+            throw new PokemonApiException(name);
+        }
     }
 
     @Override

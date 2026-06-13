@@ -27,6 +27,8 @@ A `@Spy` on the service allows stubbing `getPokemonInfo` internally for translat
 | Test | Description |
 |---|---|
 | `getPokemonInfo_shouldCallApiAndReturnMappedDto` | Calls the PokéAPI chain and returns the mapped local DTO |
+| `getPokemonInfo_whenApiReturns404_shouldThrowPokemonNotFoundException` | Throws `PokemonNotFoundException` when the API returns 404 |
+| `getPokemonInfo_whenApiReturnsGenericError_shouldThrowPokemonApiException` | Throws `PokemonApiException` on any other `RestClientException` |
 | `getTranslatedPokemonInfo_whenCaveHabitat_shouldCallYoda` | Routes to Yoda translation when habitat is `cave` |
 | `getTranslatedPokemonInfo_whenLegendary_shouldCallYoda` | Routes to Yoda translation when `isLegendary` is `true` |
 | `getTranslatedPokemonInfo_whenNeitherCaveNorLegendary_shouldCallShakespeare` | Routes to Shakespeare when habitat is not `cave` and not legendary |
@@ -62,6 +64,19 @@ Uses `standaloneSetup` to avoid the Spring Boot test autoconfigure dependency. `
 |---|---|
 | `getPokemonInfo_shouldReturn200WithDto` | `GET /pokemon/mewtwo` returns 200 with all fields correctly serialized |
 | `getTranslatedPokemonInfo_shouldReturn200WithDto` | `GET /pokemon/translated/mewtwo` returns 200 with the translated DTO |
+
+---
+
+### `GlobalExceptionHandlerTest`
+**Type:** Unit — plain JUnit 5 with `MockMvcBuilders.standaloneSetup`
+**Focus:** HTTP error responses produced by `GlobalExceptionHandler`
+
+Uses a minimal `FakeController` inner class that deliberately throws each custom exception, allowing the handler to be tested in full isolation without loading any real controllers or services.
+
+| Test | Description |
+|---|---|
+| `whenPokemonNotFoundException_shouldReturn404` | Returns `404` with `"Not Found"` error and the pokemon name in the message |
+| `whenPokemonApiException_shouldReturn502` | Returns `502` with `"Bad Gateway"` error and the pokemon name in the message |
 
 ---
 
