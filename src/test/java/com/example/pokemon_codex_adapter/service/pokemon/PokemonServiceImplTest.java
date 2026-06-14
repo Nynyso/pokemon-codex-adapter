@@ -32,6 +32,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PokemonServiceImplTest {
 
+    private static final String POKEMON_INFO_PATH = "/pokemon-species/{name}";
+    private static final String CAVE_HABITAT = "cave";
+    private static final String MEWTWO = "mewtwo";
+    private static final String PIKACHU = "pikachu";
+    private static final String ZUBAT = "zubat";
+    private static final String UNKNOWNMON = "unknownmon";
+    private static final String A_DESCRIPTION = "A description.";
+
     @Mock private RestClient pokemonRestClient;
     @Mock private PokemonInfoMapper pokemonInfoMapper;
     @Mock private TranslationService translationService;
@@ -43,14 +51,14 @@ class PokemonServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(pokemonService, "getPokemonInfoPath", "/pokemon-species/{name}");
+        ReflectionTestUtils.setField(pokemonService, "getPokemonInfoPath", POKEMON_INFO_PATH);
     }
 
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void getPokemonInfo_shouldCallApiAndReturnMappedDto() {
         PokemonInfoDto apiDto = new PokemonInfoDto();
-        PokemonInfoLocalDto localDto = buildLocalDto("mewtwo", "A description.", "rare", true);
+        PokemonInfoLocalDto localDto = buildLocalDto(MEWTWO, A_DESCRIPTION, "rare", true);
 
         RestClient.RequestHeadersUriSpec uriSpec = mock(RestClient.RequestHeadersUriSpec.class);
         RestClient.RequestHeadersSpec headersSpec = mock(RestClient.RequestHeadersSpec.class);
@@ -62,7 +70,7 @@ class PokemonServiceImplTest {
         when(responseSpec.body(PokemonInfoDto.class)).thenReturn(apiDto);
         when(pokemonInfoMapper.toLocalDto(apiDto)).thenReturn(localDto);
 
-        PokemonInfoLocalDto result = pokemonService.getPokemonInfo("mewtwo");
+        PokemonInfoLocalDto result = pokemonService.getPokemonInfo(MEWTWO);
 
         assertThat(result).isEqualTo(localDto);
         verify(pokemonInfoMapper).toLocalDto(apiDto);
@@ -80,9 +88,9 @@ class PokemonServiceImplTest {
         when(headersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(PokemonInfoDto.class)).thenThrow(HttpClientErrorException.NotFound.class);
 
-        assertThatThrownBy(() -> pokemonService.getPokemonInfo("unknownmon"))
+        assertThatThrownBy(() -> pokemonService.getPokemonInfo(UNKNOWNMON))
                 .isInstanceOf(PokemonNotFoundException.class)
-                .hasMessageContaining("unknownmon");
+                .hasMessageContaining(UNKNOWNMON);
     }
 
     @Test
@@ -97,71 +105,71 @@ class PokemonServiceImplTest {
         when(headersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(PokemonInfoDto.class)).thenThrow(new RestClientException("Server error"));
 
-        assertThatThrownBy(() -> pokemonService.getPokemonInfo("mewtwo"))
+        assertThatThrownBy(() -> pokemonService.getPokemonInfo(MEWTWO))
                 .isInstanceOf(PokemonApiException.class)
-                .hasMessageContaining("mewtwo");
+                .hasMessageContaining(MEWTWO);
     }
 
     @Test
     void getTranslatedPokemonInfo_whenCaveHabitat_shouldCallYoda() {
-        PokemonInfoLocalDto localDto = buildLocalDto("zubat", "A description.", "cave", false);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("zubat");
+        PokemonInfoLocalDto localDto = buildLocalDto(ZUBAT, A_DESCRIPTION, CAVE_HABITAT, false);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(ZUBAT);
         when(translationService.translateYoda(any())).thenReturn(buildTranslationResponse("Translated."));
 
-        pokemonService.getTranslatedPokemonInfo("zubat");
+        pokemonService.getTranslatedPokemonInfo(ZUBAT);
 
-        verify(translationService).translateYoda(new TranslationRequestDto("A description."));
+        verify(translationService).translateYoda(new TranslationRequestDto(A_DESCRIPTION));
         verify(translationService, never()).translateShakespeare(any());
     }
 
     @Test
     void getTranslatedPokemonInfo_whenLegendary_shouldCallYoda() {
-        PokemonInfoLocalDto localDto = buildLocalDto("mewtwo", "A description.", "rare", true);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("mewtwo");
+        PokemonInfoLocalDto localDto = buildLocalDto(MEWTWO, A_DESCRIPTION, "rare", true);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(MEWTWO);
         when(translationService.translateYoda(any())).thenReturn(buildTranslationResponse("Translated."));
 
-        pokemonService.getTranslatedPokemonInfo("mewtwo");
+        pokemonService.getTranslatedPokemonInfo(MEWTWO);
 
-        verify(translationService).translateYoda(new TranslationRequestDto("A description."));
+        verify(translationService).translateYoda(new TranslationRequestDto(A_DESCRIPTION));
         verify(translationService, never()).translateShakespeare(any());
     }
 
     @Test
     void getTranslatedPokemonInfo_whenNeitherCaveNorLegendary_shouldCallShakespeare() {
-        PokemonInfoLocalDto localDto = buildLocalDto("pikachu", "A description.", "forest", false);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("pikachu");
+        PokemonInfoLocalDto localDto = buildLocalDto(PIKACHU, A_DESCRIPTION, "forest", false);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(PIKACHU);
         when(translationService.translateShakespeare(any())).thenReturn(buildTranslationResponse("Translated."));
 
-        pokemonService.getTranslatedPokemonInfo("pikachu");
+        pokemonService.getTranslatedPokemonInfo(PIKACHU);
 
-        verify(translationService).translateShakespeare(new TranslationRequestDto("A description."));
+        verify(translationService).translateShakespeare(new TranslationRequestDto(A_DESCRIPTION));
         verify(translationService, never()).translateYoda(any());
     }
 
     @Test
     void getTranslatedPokemonInfo_whenDescriptionIsNull_shouldSkipTranslation() {
-        PokemonInfoLocalDto localDto = buildLocalDto("pikachu", null, "forest", false);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("pikachu");
+        PokemonInfoLocalDto localDto = buildLocalDto(PIKACHU, null, "forest", false);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(PIKACHU);
 
-        pokemonService.getTranslatedPokemonInfo("pikachu");
+        pokemonService.getTranslatedPokemonInfo(PIKACHU);
 
         verifyNoInteractions(translationService);
     }
 
     @Test
     void getTranslatedPokemonInfo_whenDescriptionIsBlank_shouldSkipTranslation() {
-        PokemonInfoLocalDto localDto = buildLocalDto("pikachu", "   ", "forest", false);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("pikachu");
+        PokemonInfoLocalDto localDto = buildLocalDto(PIKACHU, "   ", "forest", false);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(PIKACHU);
 
-        pokemonService.getTranslatedPokemonInfo("pikachu");
+        pokemonService.getTranslatedPokemonInfo(PIKACHU);
 
         verifyNoInteractions(translationService);
     }
 
     @Test
     void getTranslatedPokemonInfo_whenTranslationFails_shouldReturnOriginalDescription() {
-        PokemonInfoLocalDto localDto = buildLocalDto("pikachu", "Original description.", "forest", false);
-        doReturn(localDto).when(pokemonService).getPokemonInfo("pikachu");
+        PokemonInfoLocalDto localDto = buildLocalDto(PIKACHU, "Original description.", "forest", false);
+        doReturn(localDto).when(pokemonService).getPokemonInfo(PIKACHU);
         when(translationService.translateShakespeare(any())).thenThrow(new RestClientException("API error"));
 
         PokemonInfoLocalDto result = pokemonService.getTranslatedPokemonInfo("pikachu");

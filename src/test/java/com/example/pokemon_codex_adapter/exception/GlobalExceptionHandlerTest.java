@@ -15,6 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class GlobalExceptionHandlerTest {
 
+    private static final String NOT_FOUND_POKEMON = "missingno";
+    private static final String API_ERROR_POKEMON = "mewtwo";
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -32,7 +35,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("Pokemon 'missingno' was not found."));
+                .andExpect(jsonPath("$.message").value("Pokemon '" + NOT_FOUND_POKEMON + "' was not found."));
     }
 
     @Test
@@ -42,7 +45,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value(502))
                 .andExpect(jsonPath("$.error").value("Bad Gateway"))
-                .andExpect(jsonPath("$.message").value("An error occurred while retrieving information for pokemon 'mewtwo'."));
+                .andExpect(jsonPath("$.message").value("An error occurred while retrieving information for pokemon '" + API_ERROR_POKEMON + "'."));
     }
 
     @RestController
@@ -50,12 +53,12 @@ class GlobalExceptionHandlerTest {
 
         @GetMapping("/test/not-found")
         public void notFound() {
-            throw new PokemonNotFoundException("missingno");
+            throw new PokemonNotFoundException(NOT_FOUND_POKEMON);
         }
 
         @GetMapping("/test/api-error")
         public void apiError() {
-            throw new PokemonApiException("mewtwo");
+            throw new PokemonApiException(API_ERROR_POKEMON);
         }
 
     }

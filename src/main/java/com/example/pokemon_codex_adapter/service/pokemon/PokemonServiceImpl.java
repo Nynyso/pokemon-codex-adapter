@@ -22,6 +22,8 @@ import org.springframework.web.client.RestClientException;
 @RequiredArgsConstructor
 public class PokemonServiceImpl implements PokemonService {
 
+    private static final String CAVE_HABITAT = "cave";
+
     private final RestClient pokemonRestClient;
     private final PokemonInfoMapper pokemonInfoMapper;
     private final TranslationService translationService;
@@ -57,7 +59,7 @@ public class PokemonServiceImpl implements PokemonService {
             TranslationRequestDto request = new TranslationRequestDto(pokemonInfo.getDescription());
             TranslationResponseDto translationResponse;
 
-            if ("cave".equals(pokemonInfo.getHabitat()) || Boolean.TRUE.equals(pokemonInfo.getIsLegendary())) {
+            if (CAVE_HABITAT.equals(pokemonInfo.getHabitat()) || Boolean.TRUE.equals(pokemonInfo.getIsLegendary())) {
                 translationResponse = translationService.translateYoda(request);
             } else {
                 translationResponse = translationService.translateShakespeare(request);
