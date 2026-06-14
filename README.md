@@ -14,7 +14,8 @@ For full project and test suite documentation see the [`docs/`](docs/) folder.
 ### Run independently
 - [JDK 25](https://adoptium.net/)
 - [Maven 3.9+](https://maven.apache.org/)
-- [Bruno](https://www.usebruno.com/) — to explore the API endpoints
+
+### [Bruno](https://www.usebruno.com/) — to explore the API endpoints (or any API Client of your choosing)
 
 ---
 
